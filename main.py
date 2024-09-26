@@ -2,12 +2,19 @@ import cv2 as cv
 import time
 from emailing import send_email
 import glob
+import os
 
 video = cv.VideoCapture(0)
 time.sleep(1)
 first_frame = None
 status_list = []
 count = 1
+
+
+def clean_folder():
+    images = glob.glob("images/*.png")
+    for image in images:
+        os.remove(image)
 
 while True:
     status = 0
@@ -36,13 +43,17 @@ while True:
             cv.imwrite(f"images/{count}.png", frame)
             count += 1
             all_images = glob.glob("images/*.png")
-            index = int(len(all_images/2))
+            index = int(len(all_images)/2)
             best_image_with_object = all_images[index]
         
     status_list.append(status)
     status_list = status_list[-2:]
+
+    # Object exited the frame
     if status_list[0] == 1 and status_list[1] == 0:
         send_email(best_image_with_object)
+        clean_folder()
+    
     print(status_list)
 
     cv.imshow("Video", frame)
